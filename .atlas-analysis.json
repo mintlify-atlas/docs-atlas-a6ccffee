@@ -1,0 +1,94 @@
+{
+  "projectType": "api-service",
+  "projectName": "SPS School Backend",
+  "projectDescription": "A Node.js/Express REST API backend for managing a school's students, teachers, attendance, assignments, applications, and finances with JWT-based role authentication.",
+  "theme": "linden",
+  "primaryColor": "#1E40AF",
+  "lightColor": "#3B82F6",
+  "darkColor": "#1E3A5F",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "Authentication",
+            "pages": ["auth/overview", "auth/roles"]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/environment-setup",
+              "guides/database"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["api/overview"]
+          },
+          {
+            "group": "Auth",
+            "pages": ["api/auth/register", "api/auth/login"]
+          },
+          {
+            "group": "Students",
+            "pages": ["api/students/add", "api/students/list"]
+          },
+          {
+            "group": "Teachers",
+            "pages": ["api/teachers/create-assignment"]
+          },
+          {
+            "group": "Attendance",
+            "pages": ["api/attendance/mark", "api/attendance/get"]
+          },
+          {
+            "group": "Assignments",
+            "pages": ["api/assignments/submit"]
+          },
+          {
+            "group": "Applications",
+            "pages": ["api/applications/send", "api/applications/approve"]
+          },
+          {
+            "group": "Finance",
+            "pages": ["api/finance/create-fee", "api/finance/list-fees"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "JWT-based authentication with role-based access control (RBAC)",
+    "Student management: add and list students",
+    "Teacher assignment creation with role enforcement",
+    "Attendance tracking per student",
+    "Assignment submission workflow",
+    "Application (leave/request) send and approval flow",
+    "Fee/finance management: create and list fees",
+    "MongoDB (Mongoose) data persistence"
+  ],
+  "publicApiSurface": [
+    "POST /api/auth/register",
+    "POST /api/auth/login",
+    "POST /api/student/add",
+    "GET /api/student/list",
+    "POST /api/teacher/assignment",
+    "POST /api/attendance/mark",
+    "GET /api/attendance/student/:id",
+    "POST /api/assignment/submit",
+    "POST /api/application/send",
+    "PUT /api/application/approve/:id",
+    "POST /api/finance/create",
+    "GET /api/finance/list"
+  ]
+}
