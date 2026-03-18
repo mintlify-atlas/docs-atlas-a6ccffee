@@ -1,80 +1,151 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get the SPS School Backend server running locally in minutes.
 ---
 
-## Get started in three steps
+## Prerequisites
 
-Get your documentation site running locally and make your first customization.
+Before you begin, make sure you have the following installed:
 
-### Step 1: Set up your local environment
+- **Node.js** v18 or later
+- **MongoDB** running locally (or a remote MongoDB URI)
+- **npm** (bundled with Node.js)
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+<Steps>
+  <Step title="Clone or download the project">
+    Download the project source and navigate into the directory:
 
-### Step 2: Deploy your changes
+    ```bash
+    git clone <your-repo-url> sps-school-backend
+    cd sps-school-backend
+    ```
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+  <Step title="Install dependencies">
+    Install all required packages:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    ```bash
+    npm install
+    ```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    This installs the following runtime dependencies:
 
-### Step 3: Go live
+    | Package | Version | Purpose |
+    |---|---|---|
+    | `express` | ^5.2.1 | HTTP server framework |
+    | `mongoose` | ^9.3.0 | MongoDB ODM |
+    | `jsonwebtoken` | ^9.0.3 | JWT issuance and verification |
+    | `bcryptjs` | ^3.0.3 | Password hashing |
+    | `dotenv` | ^17.3.1 | Environment variable loading |
+    | `cors` | ^2.8.6 | Cross-origin request handling |
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    `nodemon` is installed as a dev dependency for auto-restarting during development.
+  </Step>
 
-## Next steps
+  <Step title="Configure environment variables">
+    Create a `.env` file in the project root with the following variables:
 
-Now that you have your docs running, explore these key features:
+    ```bash
+    PORT=5000
+    DB_URL=mongodb://127.0.0.1:27017/sps_school
+    JWT_SECRET=mysecretkey
+    ```
 
-<CardGroup cols={2}>
+    <Warning>
+      Replace `JWT_SECRET` with a long, random string before deploying to any non-local environment. The value shown above is for local development only.
+    </Warning>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+    | Variable | Description |
+    |---|---|
+    | `PORT` | The port the Express server listens on |
+    | `DB_URL` | MongoDB connection string used by Mongoose |
+    | `JWT_SECRET` | Secret key used to sign and verify JWT tokens |
+  </Step>
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+  <Step title="Start the server">
+    <Tabs>
+      <Tab title="Production / standard">
+        ```bash
+        node server.js
+        ```
+      </Tab>
+      <Tab title="Development (auto-reload)">
+        ```bash
+        npx nodemon server.js
+        ```
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+        <Tip>
+          Add a `dev` script to `package.json` for convenience:
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+          ```json
+          "scripts": {
+            "dev": "nodemon server.js"
+          }
+          ```
 
-</CardGroup>
+          Then run `npm run dev`.
+        </Tip>
+      </Tab>
+    </Tabs>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+    When the server starts successfully you will see:
+
+    ```
+    Database connected
+    Server running on port 5000
+    ```
+  </Step>
+
+  <Step title="Verify the server is running">
+    Send a request to the root endpoint:
+
+    ```bash
+    curl http://localhost:5000/
+    ```
+
+    Expected response:
+
+    ```
+    SPS School Backend Running
+    ```
+  </Step>
+
+  <Step title="Register your first user">
+    Create a user account by posting to the register endpoint:
+
+    ```bash
+    curl -X POST http://localhost:5000/api/auth/register \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Alice Smith",
+        "email": "alice@example.com",
+        "password": "securepassword",
+        "role": "SUPER_ADMIN"
+      }'
+    ```
+
+    The server responds with the created user document (including the hashed password).
+  </Step>
+
+  <Step title="Log in and retrieve a token">
+    ```bash
+    curl -X POST http://localhost:5000/api/auth/login \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "alice@example.com",
+        "password": "securepassword"
+      }'
+    ```
+
+    Expected response:
+
+    ```json
+    {
+      "token": "<jwt-token>",
+      "role": "SUPER_ADMIN"
+    }
+    ```
+
+    Use the returned `token` value as the `authorization` header on protected requests.
+  </Step>
+</Steps>

@@ -1,0 +1,66 @@
+---
+title: 'Login'
+description: 'Authenticate a user and receive a JWT for use in subsequent requests.'
+---
+
+`POST /api/auth/login`
+
+Authenticates a user by email and password. Returns a signed JWT and the user's role on success.
+
+## Request body
+
+<ParamField body="email" type="string" required>
+  The email address of the user to authenticate.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's plain-text password.
+</ParamField>
+
+## Response
+
+<ResponseField name="token" type="string" required>
+  A signed JWT encoding the user's `id` and `role`. Pass this value as the `authorization` header in subsequent requests — with no `Bearer` prefix.
+</ResponseField>
+
+<ResponseField name="role" type="string" required>
+  The authenticated user's role (e.g. `TEACHER`, `STUDENT_ADMIN`).
+</ResponseField>
+
+## Errors
+
+| Status | Message | Cause |
+|--------|---------|-------|
+| 404 | `User not found` | No user exists with the supplied email |
+| 400 | `Wrong password` | The password does not match the stored hash |
+
+## Using the token
+
+The JWT returned in `token` must be included in the `authorization` header of every request to a protected endpoint. Send the raw token value — the API reads `req.headers.authorization` directly without a `Bearer` scheme.
+
+```bash
+curl http://localhost:3000/api/teacher/assignment \
+  -H "authorization: <token>"
+```
+
+<Tip>
+Store the token and role from the login response together. The role tells you which endpoints the user can access without making an extra request.
+</Tip>
+
+## Example
+
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "alice@example.com",
+    "password": "s3cr3t"
+  }'
+```
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "role": "TEACHER"
+}
+```

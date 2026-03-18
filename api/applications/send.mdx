@@ -1,0 +1,93 @@
+---
+title: "Send Application"
+description: "Submit a new application from a student to a teacher."
+---
+
+## Endpoint
+
+**POST** `/api/application/send`
+
+<Note>
+  This endpoint does not require authentication.
+</Note>
+
+## Request Body
+
+<ParamField body="studentId" type="ObjectId" required>
+  The MongoDB ObjectId of the student sending the application.
+</ParamField>
+
+<ParamField body="teacherId" type="ObjectId" required>
+  The MongoDB ObjectId of the teacher the application is directed to.
+</ParamField>
+
+<ParamField body="type" type="String" required>
+  The type or category of the application (e.g. `"leave"`, `"complaint"`).
+</ParamField>
+
+<ParamField body="message" type="String" required>
+  The body text of the application message.
+</ParamField>
+
+<Info>
+  The `status` field is not required in the request body. It defaults to `"PENDING"` automatically.
+</Info>
+
+## Response
+
+Returns the saved `Application` document.
+
+<ResponseField name="_id" type="ObjectId">
+  The MongoDB ObjectId of the newly created application.
+</ResponseField>
+
+<ResponseField name="studentId" type="ObjectId">
+  The ObjectId of the student who sent the application.
+</ResponseField>
+
+<ResponseField name="teacherId" type="ObjectId">
+  The ObjectId of the teacher the application was sent to.
+</ResponseField>
+
+<ResponseField name="type" type="String">
+  The type of the application.
+</ResponseField>
+
+<ResponseField name="message" type="String">
+  The application message text.
+</ResponseField>
+
+<ResponseField name="status" type="String">
+  The current status of the application. Always `"PENDING"` for newly created applications.
+</ResponseField>
+
+<ResponseField name="__v" type="Number">
+  Mongoose internal version key.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X POST https://your-api-host/api/application/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+    "teacherId": "64b1f0e2c2a4a12b3c8d9e20",
+    "type": "leave",
+    "message": "Requesting a leave of absence for family reasons."
+  }'
+```
+
+**Response**
+
+```json
+{
+  "_id": "64b4c3d5f5d7d45e6f1a2b30",
+  "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+  "teacherId": "64b1f0e2c2a4a12b3c8d9e20",
+  "type": "leave",
+  "message": "Requesting a leave of absence for family reasons.",
+  "status": "PENDING",
+  "__v": 0
+}
+```

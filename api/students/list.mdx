@@ -1,0 +1,71 @@
+---
+title: 'List students'
+description: 'Retrieve all student records.'
+---
+
+`GET /api/student/list`
+
+Returns an array of all student documents. This endpoint requires no authentication.
+
+## Response
+
+Returns an array of `Student` documents.
+
+<ResponseField name="[]" type="object[]">
+  Array of student objects.
+
+  <Expandable title="Student properties">
+    <ResponseField name="_id" type="string" required>
+      MongoDB-generated unique identifier.
+    </ResponseField>
+
+    <ResponseField name="name" type="string">
+      The student's full name.
+    </ResponseField>
+
+    <ResponseField name="email" type="string">
+      The student's email address.
+    </ResponseField>
+
+    <ResponseField name="class" type="string">
+      The class the student belongs to.
+    </ResponseField>
+
+    <ResponseField name="section" type="string">
+      The section within the class.
+    </ResponseField>
+
+    <ResponseField name="rollNumber" type="number">
+      The student's roll number.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example
+
+```bash
+curl http://localhost:3000/api/student/list
+```
+
+```json
+[
+  {
+    "_id": "64b2a3c4d5e6f7a8b9c0d1e2",
+    "name": "Bob Jones",
+    "email": "bob@example.com",
+    "class": "10",
+    "section": "A",
+    "rollNumber": 42,
+    "__v": 0
+  },
+  {
+    "_id": "64b2a3c4d5e6f7a8b9c0d1e3",
+    "name": "Carol Lee",
+    "email": "carol@example.com",
+    "class": "9",
+    "section": "B",
+    "rollNumber": 7,
+    "__v": 0
+  }
+]
+```

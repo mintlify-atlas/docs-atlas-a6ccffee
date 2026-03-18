@@ -1,0 +1,95 @@
+---
+title: 'Create assignment'
+description: 'Create a new assignment for a class. Requires a TEACHER role JWT.'
+---
+
+`POST /api/teacher/assignment`
+
+Creates a new assignment document. The `teacherId` is set automatically from the authenticated user's JWT — it cannot be supplied in the request body.
+
+## Authentication
+
+This endpoint requires a valid JWT passed as the `authorization` header (raw token, no `Bearer` prefix). The token must belong to a user with the `TEACHER` role.
+
+<Warning>
+Requests without a token return `401 Unauthorized`. Requests from a user whose role is not `TEACHER` return `403 Access denied`.
+</Warning>
+
+## Request headers
+
+<ParamField header="authorization" type="string" required>
+  A valid JWT obtained from [POST /api/auth/login](/api/auth/login). Passed as a raw token value with no `Bearer` prefix.
+</ParamField>
+
+## Request body
+
+<ParamField body="classId" type="number">
+  The numeric identifier of the class this assignment is for.
+</ParamField>
+
+<ParamField body="title" type="string">
+  The title of the assignment.
+</ParamField>
+
+<ParamField body="dueDate" type="string">
+  The due date for the assignment as an ISO 8601 date string (e.g. `"2026-04-01T00:00:00.000Z"`).
+</ParamField>
+
+<Note>
+`teacherId` is populated automatically from the authenticated user's decoded JWT (`req.user.id`). Do not include it in the request body.
+</Note>
+
+## Response
+
+Returns the saved Mongoose `Assignment` document.
+
+<ResponseField name="_id" type="string" required>
+  MongoDB-generated unique identifier for the assignment.
+</ResponseField>
+
+<ResponseField name="classId" type="number">
+  The class this assignment belongs to.
+</ResponseField>
+
+<ResponseField name="title" type="string">
+  The assignment title.
+</ResponseField>
+
+<ResponseField name="dueDate" type="string">
+  The due date as an ISO 8601 date string.
+</ResponseField>
+
+<ResponseField name="teacherId" type="string">
+  The MongoDB ObjectId of the teacher who created the assignment. Set from the JWT, not the request body.
+</ResponseField>
+
+## Errors
+
+| Status | Message | Cause |
+|--------|---------|-------|
+| 401 | `Unauthorized` | No `authorization` header was provided |
+| 403 | `Access denied` | The token is valid but the user's role is not `TEACHER` |
+
+## Example
+
+```bash
+curl -X POST http://localhost:3000/api/teacher/assignment \
+  -H "Content-Type: application/json" \
+  -H "authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -d '{
+    "classId": 10,
+    "title": "Algebra homework",
+    "dueDate": "2026-04-01T00:00:00.000Z"
+  }'
+```
+
+```json
+{
+  "_id": "64c3b4d5e6f7a8b9c0d1e2f3",
+  "classId": 10,
+  "title": "Algebra homework",
+  "dueDate": "2026-04-01T00:00:00.000Z",
+  "teacherId": "64a1f2b3c4d5e6f7a8b9c0d1",
+  "__v": 0
+}
+```

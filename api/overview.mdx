@@ -1,0 +1,84 @@
+---
+title: 'API overview'
+description: 'Base URL, authentication, all endpoints, and error response formats for the SPS School Backend API.'
+---
+
+The SPS School Backend exposes a REST API for managing users, students, and teacher assignments. All requests and responses use JSON.
+
+## Base URL
+
+```
+http://localhost:{PORT}/api
+```
+
+Replace `{PORT}` with the port your server is configured to listen on.
+
+## Authentication
+
+Some endpoints require a valid JWT token. Pass the token as the `authorization` request header with the raw token value — no `Bearer` prefix.
+
+```bash
+curl http://localhost:3000/api/teacher/assignment \
+  -H "authorization: <your_token>"
+```
+
+<Note>
+Obtain a token by calling [POST /api/auth/login](/api/auth/login). The response contains a `token` field — use that value directly as the `authorization` header.
+</Note>
+
+## Endpoints
+
+| Method | Path | Auth required | Description |
+|--------|------|---------------|-------------|
+| POST | `/api/auth/register` | No | Register a new user |
+| POST | `/api/auth/login` | No | Log in and receive a JWT |
+| POST | `/api/student/add` | No | Add a new student |
+| GET | `/api/student/list` | No | List all students |
+| POST | `/api/teacher/assignment` | Yes (TEACHER role) | Create a new assignment |
+
+<Info>
+The source currently defines 5 routes across 3 route files (`authRoutes.js`, `studentRoutes.js`, `teacherRoutes.js`).
+</Info>
+
+## Error responses
+
+All error responses return JSON with a `message` field.
+
+### 400 Bad request
+
+Returned when request data is invalid, for example when a wrong password is supplied.
+
+```json
+{ "message": "Wrong password" }
+```
+
+### 401 Unauthorized
+
+Returned when a protected endpoint is called without a token.
+
+```json
+{ "message": "Unauthorized" }
+```
+
+### 403 Forbidden
+
+Returned when the authenticated user's role does not match the required role.
+
+```json
+{ "message": "Access denied" }
+```
+
+### 404 Not found
+
+Returned when a requested resource does not exist, for example an unrecognised email on login.
+
+```json
+{ "message": "User not found" }
+```
+
+## Data format
+
+- All request bodies must be JSON.
+- All responses are JSON.
+- Dates are ISO 8601 strings.
+- MongoDB document IDs are returned as the `_id` field (a 24-character hex string).

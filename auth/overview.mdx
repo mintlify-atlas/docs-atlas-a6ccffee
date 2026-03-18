@@ -1,0 +1,141 @@
+---
+title: Authentication Overview
+description: How JWT-based authentication works in the SPS School Backend API.
+---
+
+## How authentication works
+
+The SPS School Backend uses **JSON Web Tokens (JWT)** for stateless authentication. The flow is:
+
+1. A client registers or logs in via `/api/auth/login`.
+2. The server verifies the password with bcrypt and signs a JWT containing the user's `id` and `role`.
+3. The client stores the token and sends it as the `authorization` header on every subsequent protected request.
+4. `authMiddleware` verifies the token on each request before the route handler runs.
+5. `roleMiddleware` (applied on specific routes) checks `req.user.role` to enforce access control.
+
+## Login and token issuance
+
+When a user logs in, the server finds the user by email, compares the submitted password against the stored bcrypt hash, and — if they match — signs a JWT:
+
+```javascript
+// controllers/authController.js
+const token = jwt.sign(
+  { id: user._id, role: user.role },
+  process.env.JWT_SECRET
+);
+
+res.json({
+  token,
+  role: user.role
+});
+```
+
+The payload embedded in the token contains:
+
+| Claim | Value |
+|---|---|
+| `id` | The MongoDB `_id` of the user document |
+| `role` | The role string (e.g. `TEACHER`, `STUDENT`) |
+
+<Note>
+  The token is signed with no explicit expiration. It remains valid indefinitely unless the `JWT_SECRET` is rotated or the token is discarded by the client.
+</Note>
+
+## Sending the token
+
+Pass the token directly as the value of the `authorization` header — **without** a `Bearer ` prefix:
+
+```bash
+curl http://localhost:5000/api/teacher \
+  -H "authorization: <your-jwt-token>"
+```
+
+<Warning>
+  The middleware reads `req.headers.authorization` verbatim. Adding a `Bearer ` prefix will cause token verification to fail because the raw string (including the prefix) would be passed to `jwt.verify`.
+</Warning>
+
+## authMiddleware
+
+`authMiddleware` is a single Express middleware function applied to any route that requires a logged-in user:
+
+```javascript
+// middleware/authMiddleware.js
+const jwt = require("jsonwebtoken");
+
+module.exports = (req, res, next) => {
+
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  req.user = decoded;
+
+  next();
+
+};
+```
+
+**Behaviour:**
+
+- If the `authorization` header is absent, the middleware returns `401 Unauthorized`.
+- If the header is present, `jwt.verify` validates the signature against `JWT_SECRET` and decodes the payload.
+- The decoded payload (`{ id, role }`) is attached to `req.user` so downstream middleware and route handlers can access it.
+- If `jwt.verify` throws (invalid or tampered token), the error propagates as an unhandled exception.
+
+## roleMiddleware
+
+`roleMiddleware` is a higher-order function that accepts an expected role string and returns an Express middleware. It must be applied **after** `authMiddleware` because it reads `req.user.role`:
+
+```javascript
+// middleware/roleMiddleware.js
+module.exports = (role) => {
+
+  return (req, res, next) => {
+
+    if (req.user.role !== role) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    next();
+
+  };
+
+};
+```
+
+**Behaviour:**
+
+- Compares `req.user.role` (set by `authMiddleware`) against the required role string.
+- Returns `403 Access denied` if they do not match exactly.
+- The check is a strict equality comparison — there is no hierarchy or permission inheritance.
+
+## Example: protected route with role restriction
+
+A route that is restricted to `TEACHER` users would apply both middleware in order:
+
+```javascript
+const authMiddleware = require("../middleware/authMiddleware");
+const roleMiddleware = require("../middleware/roleMiddleware");
+
+router.get("/dashboard", authMiddleware, roleMiddleware("TEACHER"), (req, res) => {
+  res.json({ message: "Teacher dashboard" });
+});
+```
+
+To call this route:
+
+```bash
+# 1. Log in as a TEACHER user and capture the token
+TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "teacher@example.com", "password": "password"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+# 2. Call the protected route
+curl http://localhost:5000/api/teacher/dashboard \
+  -H "authorization: $TOKEN"
+```

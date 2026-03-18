@@ -1,0 +1,74 @@
+---
+title: "Create Fee"
+description: "Create a new fee record for a student."
+---
+
+## Endpoint
+
+**POST** `/api/finance/create`
+
+<Note>
+  This endpoint does not require authentication.
+</Note>
+
+## Request Body
+
+<ParamField body="studentId" type="ObjectId" required>
+  The MongoDB ObjectId of the student the fee is assigned to.
+</ParamField>
+
+<ParamField body="amount" type="Number" required>
+  The monetary amount of the fee.
+</ParamField>
+
+<ParamField body="status" type="String" required>
+  The payment status of the fee (e.g. `"unpaid"`, `"paid"`).
+</ParamField>
+
+## Response
+
+Returns the saved `Fee` document.
+
+<ResponseField name="_id" type="ObjectId">
+  The MongoDB ObjectId of the newly created fee record.
+</ResponseField>
+
+<ResponseField name="studentId" type="ObjectId">
+  The ObjectId of the student this fee is assigned to.
+</ResponseField>
+
+<ResponseField name="amount" type="Number">
+  The monetary amount of the fee.
+</ResponseField>
+
+<ResponseField name="status" type="String">
+  The payment status of the fee.
+</ResponseField>
+
+<ResponseField name="__v" type="Number">
+  Mongoose internal version key.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X POST https://your-api-host/api/finance/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+    "amount": 500,
+    "status": "unpaid"
+  }'
+```
+
+**Response**
+
+```json
+{
+  "_id": "64b5d4e6a6e8e56f7a2b3c40",
+  "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+  "amount": 500,
+  "status": "unpaid",
+  "__v": 0
+}
+```

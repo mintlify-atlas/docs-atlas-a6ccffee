@@ -1,0 +1,231 @@
+---
+title: Database
+description: MongoDB connection setup and Mongoose data models used in the SPS School Backend.
+---
+
+## Connection setup
+
+The database connection is managed in `config/db.js`. It uses `mongoose.connect()` with the `DB_URL` environment variable:
+
+```javascript
+// config/db.js
+const mongoose = require("mongoose");
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.DB_URL);
+    console.log("Database connected");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+module.exports = connectDB;
+```
+
+`connectDB` is imported and called in `server.js` immediately after environment variables are loaded:
+
+```javascript
+// server.js
+const connectDB = require("./config/db");
+dotenv.config();
+connectDB();
+```
+
+If the connection succeeds, `Database connected` is printed to the console. If it fails, the caught error is logged and the process continues (the server will start but all database operations will fail).
+
+## Models overview
+
+The application defines 8 Mongoose models covering users, academic records, and financial data:
+
+| Model | Collection | Purpose |
+|---|---|---|
+| `User` | `users` | Authentication accounts with role assignment |
+| `Student` | `students` | Student profile and enrollment details |
+| `Teacher` | `teachers` | Teacher records |
+| `Assignment` | `assignments` | Assignments created by teachers for a class |
+| `Attendance` | `attendances` | Daily attendance records per student |
+| `Fee` | `fees` | Fee records and payment status per student |
+| `Application` | `applications` | Student applications submitted to teachers |
+| `Submission` | `submissions` | Student assignment submissions |
+
+## Model schemas
+
+### User
+
+```javascript
+// models/User.js
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
+  role: {
+    type: String,
+    enum: [
+      "SUPER_ADMIN",
+      "ACADEMIC_ADMIN",
+      "STUDENT_ADMIN",
+      "FINANCE_ADMIN",
+      "OPERATIONS_ADMIN",
+      "TEACHER",
+      "STUDENT"
+    ]
+  }
+});
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `name` | String | Display name |
+| `email` | String | Unique — used as login identifier |
+| `password` | String | bcrypt hash |
+| `role` | String (enum) | One of the 7 defined role values |
+
+### Student
+
+```javascript
+// models/Student.js
+const studentSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  class: String,
+  section: String,
+  rollNumber: Number
+});
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `name` | String | Student's full name |
+| `email` | String | Student's email address |
+| `class` | String | Class/grade the student belongs to |
+| `section` | String | Section within the class |
+| `rollNumber` | Number | Unique roll number within the class/section |
+
+### Teacher
+
+<Note>
+  The `Teacher` model file exists at `models/Teacher.js` but the schema has no fields defined in the current source. This model is a placeholder for future implementation.
+</Note>
+
+### Assignment
+
+```javascript
+// models/Assignment.js
+const assignmentSchema = new mongoose.Schema({
+  classId: Number,
+  title: String,
+  dueDate: Date,
+  teacherId: mongoose.Schema.Types.ObjectId
+});
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `classId` | Number | Identifies the class this assignment targets |
+| `title` | String | Title/name of the assignment |
+| `dueDate` | Date | Deadline for student submissions |
+| `teacherId` | ObjectId | References the Teacher document that created the assignment |
+
+### Attendance
+
+```javascript
+// models/Attendance.js
+const attendanceSchema = new mongoose.Schema({
+  studentId: mongoose.Schema.Types.ObjectId,
+  date: Date,
+  status: String
+});
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `studentId` | ObjectId | References the Student document |
+| `date` | Date | The date the attendance record applies to |
+| `status` | String | Attendance status (e.g. present, absent) |
+
+### Fee
+
+```javascript
+// models/Fee.js
+const feeSchema = new mongoose.Schema({
+  studentId: mongoose.Schema.Types.ObjectId,
+  amount: Number,
+  status: String
+});
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `studentId` | ObjectId | References the Student document |
+| `amount` | Number | Fee amount due |
+| `status` | String | Payment status (e.g. paid, unpaid) |
+
+### Application
+
+```javascript
+// models/Application.js
+const applicationSchema = new mongoose.Schema({
+  studentId: mongoose.Schema.Types.ObjectId,
+  teacherId: mongoose.Schema.Types.ObjectId,
+  type: String,
+  message: String,
+  status: {
+    type: String,
+    default: "PENDING"
+  }
+});
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `studentId` | ObjectId | References the Student document submitting the application |
+| `teacherId` | ObjectId | References the Teacher document the application is directed to |
+| `type` | String | Category or type of the application |
+| `message` | String | Body/content of the application |
+| `status` | String | Processing status; defaults to `PENDING` |
+
+### Submission
+
+```javascript
+// models/Submission.js
+const submissionSchema = new mongoose.Schema({
+  assignmentId: mongoose.Schema.Types.ObjectId,
+  studentId: mongoose.Schema.Types.ObjectId,
+  fileUrl: String,
+  submittedAt: Date
+});
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `assignmentId` | ObjectId | References the Assignment document being submitted to |
+| `studentId` | ObjectId | References the Student document that submitted |
+| `fileUrl` | String | URL pointing to the submitted file |
+| `submittedAt` | Date | Timestamp when the submission was made |
+
+## Model relationships
+
+The following diagram describes how models reference each other via ObjectId fields:
+
+```
+User
+  (authentication only — role determines access)
+
+Student
+  ← Attendance.studentId
+  ← Fee.studentId
+  ← Application.studentId
+  ← Submission.studentId
+
+Teacher
+  ← Assignment.teacherId
+  ← Application.teacherId
+
+Assignment
+  ← Submission.assignmentId
+```
+
+<Info>
+  ObjectId reference fields (e.g. `studentId`, `teacherId`, `assignmentId`) are stored as raw `mongoose.Schema.Types.ObjectId` values. They are not declared with `ref:` in the current schema definitions, so Mongoose's `.populate()` method will require the target model name to be specified explicitly at query time.
+</Info>

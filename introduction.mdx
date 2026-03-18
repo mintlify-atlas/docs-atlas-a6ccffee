@@ -1,0 +1,63 @@
+---
+title: Introduction
+description: SPS School Backend — a REST API for managing students, teachers, attendance, assignments, applications, and finances
+---
+
+# SPS School Backend
+
+SPS School Backend is a Node.js/Express REST API that powers school management operations. It provides a structured, role-based system for administrators, teachers, and students to interact with school data through well-defined HTTP endpoints backed by MongoDB.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get the server running locally in under 5 minutes
+  </Card>
+  <Card title="Authentication" icon="lock" href="/auth/overview">
+    Learn how JWT tokens and role-based access control work
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Explore every endpoint with full request/response docs
+  </Card>
+  <Card title="Database Setup" icon="database" href="/guides/database">
+    Connect to MongoDB and understand the data models
+  </Card>
+</CardGroup>
+
+## What the API does
+
+SPS School Backend exposes endpoints across six functional domains:
+
+| Domain | Base Path | Description |
+|---|---|---|
+| Auth | `/api/auth` | User registration and JWT login |
+| Students | `/api/student` | Add and list student records |
+| Teachers | `/api/teacher` | Teacher-specific actions (assignment creation) |
+| Attendance | `/api/attendance` | Mark and retrieve attendance records |
+| Assignments | `/api/assignment` | Submit assignment responses |
+| Applications | `/api/application` | Send and approve leave/request applications |
+| Finance | `/api/finance` | Create and list fee records |
+
+## Technology stack
+
+- **Runtime**: Node.js with Express v5
+- **Database**: MongoDB via Mongoose v9
+- **Auth**: JSON Web Tokens (JWT) + bcryptjs password hashing
+- **Environment**: dotenv for configuration
+- **Cross-origin**: cors middleware enabled
+
+## Role system
+
+The API enforces a seven-tier role hierarchy on every protected endpoint. Roles are embedded in the JWT payload and checked server-side by middleware before any controller logic runs.
+
+| Role | Description |
+|---|---|
+| `SUPER_ADMIN` | Full system access |
+| `ACADEMIC_ADMIN` | Academic operations |
+| `STUDENT_ADMIN` | Student management |
+| `FINANCE_ADMIN` | Financial operations |
+| `OPERATIONS_ADMIN` | Operational tasks |
+| `TEACHER` | Classroom-level actions |
+| `STUDENT` | Student-level actions |
+
+<Note>
+All roles are enforced at the route level using the `authMiddleware` (JWT verification) and `roleMiddleware` (role check) chain. See [Authentication](/auth/overview) for details.
+</Note>

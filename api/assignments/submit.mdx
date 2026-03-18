@@ -1,0 +1,84 @@
+---
+title: "Submit Assignment"
+description: "Submit a student's assignment by providing a file URL and relevant identifiers."
+---
+
+## Endpoint
+
+**POST** `/api/assignment/submit`
+
+<Note>
+  This endpoint does not require authentication.
+</Note>
+
+## Request Body
+
+<ParamField body="assignmentId" type="ObjectId" required>
+  The MongoDB ObjectId of the assignment being submitted.
+</ParamField>
+
+<ParamField body="studentId" type="ObjectId" required>
+  The MongoDB ObjectId of the student submitting the assignment.
+</ParamField>
+
+<ParamField body="fileUrl" type="String" required>
+  The URL pointing to the uploaded assignment file.
+</ParamField>
+
+<ParamField body="submittedAt" type="Date" required>
+  The timestamp indicating when the assignment was submitted. Accepts any value parseable as a JavaScript `Date`.
+</ParamField>
+
+## Response
+
+Returns the saved `Submission` document.
+
+<ResponseField name="_id" type="ObjectId">
+  The MongoDB ObjectId of the newly created submission record.
+</ResponseField>
+
+<ResponseField name="assignmentId" type="ObjectId">
+  The ObjectId of the assignment this submission is for.
+</ResponseField>
+
+<ResponseField name="studentId" type="ObjectId">
+  The ObjectId of the student who submitted.
+</ResponseField>
+
+<ResponseField name="fileUrl" type="String">
+  The URL of the submitted file.
+</ResponseField>
+
+<ResponseField name="submittedAt" type="Date">
+  The timestamp when the assignment was submitted.
+</ResponseField>
+
+<ResponseField name="__v" type="Number">
+  Mongoose internal version key.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X POST https://your-api-host/api/assignment/submit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assignmentId": "64b1f0e2c2a4a12b3c8d9e10",
+    "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+    "fileUrl": "https://storage.example.com/submissions/essay.pdf",
+    "submittedAt": "2026-03-18T14:30:00.000Z"
+  }'
+```
+
+**Response**
+
+```json
+{
+  "_id": "64b3a2b4e4c6c34d5e0f1a11",
+  "assignmentId": "64b1f0e2c2a4a12b3c8d9e10",
+  "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+  "fileUrl": "https://storage.example.com/submissions/essay.pdf",
+  "submittedAt": "2026-03-18T14:30:00.000Z",
+  "__v": 0
+}
+```

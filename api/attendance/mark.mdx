@@ -1,0 +1,74 @@
+---
+title: "Mark Attendance"
+description: "Record a student's attendance for a specific date."
+---
+
+## Endpoint
+
+**POST** `/api/attendance/mark`
+
+<Note>
+  This endpoint does not require authentication.
+</Note>
+
+## Request Body
+
+<ParamField body="studentId" type="ObjectId" required>
+  The MongoDB ObjectId of the student whose attendance is being recorded.
+</ParamField>
+
+<ParamField body="date" type="Date" required>
+  The date for which attendance is being marked. Accepts any value parseable as a JavaScript `Date`.
+</ParamField>
+
+<ParamField body="status" type="String" required>
+  The attendance status for the student on the given date (e.g. `"present"`, `"absent"`).
+</ParamField>
+
+## Response
+
+Returns the saved `Attendance` document.
+
+<ResponseField name="_id" type="ObjectId">
+  The MongoDB ObjectId of the newly created attendance record.
+</ResponseField>
+
+<ResponseField name="studentId" type="ObjectId">
+  The ObjectId of the student this record belongs to.
+</ResponseField>
+
+<ResponseField name="date" type="Date">
+  The date of the attendance record.
+</ResponseField>
+
+<ResponseField name="status" type="String">
+  The attendance status that was recorded.
+</ResponseField>
+
+<ResponseField name="__v" type="Number">
+  Mongoose internal version key.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X POST https://your-api-host/api/attendance/mark \
+  -H "Content-Type: application/json" \
+  -d '{
+    "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+    "date": "2026-03-18T00:00:00.000Z",
+    "status": "present"
+  }'
+```
+
+**Response**
+
+```json
+{
+  "_id": "64b2f1a3d3b5b23c4d9e0f02",
+  "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+  "date": "2026-03-18T00:00:00.000Z",
+  "status": "present",
+  "__v": 0
+}
+```

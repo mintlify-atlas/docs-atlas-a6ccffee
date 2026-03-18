@@ -1,0 +1,78 @@
+---
+title: "Approve Application"
+description: "Approve a pending application by its ID, updating its status to APPROVED."
+---
+
+## Endpoint
+
+**PUT** `/api/application/approve/:id`
+
+<Note>
+  This endpoint does not require authentication.
+</Note>
+
+## Path Parameters
+
+<ParamField path="id" type="ObjectId" required>
+  The MongoDB ObjectId of the application to approve.
+</ParamField>
+
+## Request Body
+
+This endpoint does not accept a request body. The status is set to `"APPROVED"` automatically by the server.
+
+## Response
+
+Returns the updated `Application` document with `status` set to `"APPROVED"`. The document is returned after the update is applied (`{ new: true }`).
+
+<ResponseField name="_id" type="ObjectId">
+  The MongoDB ObjectId of the application.
+</ResponseField>
+
+<ResponseField name="studentId" type="ObjectId">
+  The ObjectId of the student who sent the application.
+</ResponseField>
+
+<ResponseField name="teacherId" type="ObjectId">
+  The ObjectId of the teacher the application was addressed to.
+</ResponseField>
+
+<ResponseField name="type" type="String">
+  The type of the application.
+</ResponseField>
+
+<ResponseField name="message" type="String">
+  The application message text.
+</ResponseField>
+
+<ResponseField name="status" type="String">
+  The updated status of the application. Will be `"APPROVED"` after a successful call.
+</ResponseField>
+
+<ResponseField name="__v" type="Number">
+  Mongoose internal version key.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X PUT https://your-api-host/api/application/approve/64b4c3d5f5d7d45e6f1a2b30
+```
+
+**Response**
+
+```json
+{
+  "_id": "64b4c3d5f5d7d45e6f1a2b30",
+  "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+  "teacherId": "64b1f0e2c2a4a12b3c8d9e20",
+  "type": "leave",
+  "message": "Requesting a leave of absence for family reasons.",
+  "status": "APPROVED",
+  "__v": 0
+}
+```
+
+<Warning>
+  If the provided `:id` does not match any existing application, the response will be `null`. Ensure the ID is a valid MongoDB ObjectId belonging to an existing application.
+</Warning>

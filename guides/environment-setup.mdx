@@ -1,0 +1,123 @@
+---
+title: Environment Setup
+description: Configure environment variables and set up a local development environment for the SPS School Backend.
+---
+
+## Environment variables
+
+The application loads environment variables at startup using `dotenv`. Create a `.env` file in the project root before starting the server.
+
+### Example `.env` file
+
+```bash
+PORT=5000
+DB_URL=mongodb://127.0.0.1:27017/sps_school
+JWT_SECRET=mysecretkey
+```
+
+<Warning>
+  Never commit your `.env` file to version control. Add `.env` to your `.gitignore`.
+</Warning>
+
+### Variable reference
+
+<CardGroup cols={1}>
+  <Card title="PORT">
+    The port number the Express HTTP server binds to.
+
+    ```bash
+    PORT=5000
+    ```
+
+    `server.js` passes this directly to `app.listen(process.env.PORT, ...)`. If the variable is unset, `app.listen` will receive `undefined` and Node.js will assign a random available port.
+  </Card>
+
+  <Card title="DB_URL">
+    The MongoDB connection string passed to `mongoose.connect()`.
+
+    ```bash
+    # Local MongoDB instance
+    DB_URL=mongodb://127.0.0.1:27017/sps_school
+
+    # MongoDB Atlas (example format)
+    DB_URL=mongodb+srv://<user>:<password>@cluster0.example.mongodb.net/sps_school
+    ```
+
+    The database name (`sps_school` in the examples above) is created automatically by MongoDB on first write if it does not already exist.
+  </Card>
+
+  <Card title="JWT_SECRET">
+    The secret key used by `jsonwebtoken` to sign and verify JWTs.
+
+    ```bash
+    JWT_SECRET=mysecretkey
+    ```
+
+    <Warning>
+      Use a long, cryptographically random string in any environment beyond your local machine. You can generate one with:
+
+      ```bash
+      node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+      ```
+    </Warning>
+
+    Changing this value invalidates all existing tokens — all users will need to log in again.
+  </Card>
+</CardGroup>
+
+## How variables are loaded
+
+`dotenv.config()` is called at the top of `server.js` before any other module uses `process.env`:
+
+```javascript
+// server.js
+const dotenv = require("dotenv");
+dotenv.config();
+```
+
+Variables are then consumed in:
+
+| File | Variable used |
+|---|---|
+| `server.js` | `process.env.PORT` |
+| `config/db.js` | `process.env.DB_URL` |
+| `middleware/authMiddleware.js` | `process.env.JWT_SECRET` |
+| `controllers/authController.js` | `process.env.JWT_SECRET` |
+
+## Development workflow with nodemon
+
+`nodemon` is included as a dev dependency and automatically restarts the server whenever a source file changes.
+
+<Steps>
+  <Step title="Install nodemon (already included)">
+    `nodemon` is listed under `devDependencies` in `package.json` and is installed when you run `npm install`.
+  </Step>
+
+  <Step title="Add a dev script to package.json">
+    ```json
+    {
+      "scripts": {
+        "dev": "nodemon server.js"
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Start the development server">
+    ```bash
+    npm run dev
+    ```
+
+    nodemon will watch for file changes and restart automatically. You will see output similar to:
+
+    ```
+    [nodemon] starting `node server.js`
+    Database connected
+    Server running on port 5000
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+  You can also run nodemon directly without a script entry: `npx nodemon server.js`.
+</Tip>

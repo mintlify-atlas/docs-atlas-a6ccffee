@@ -1,0 +1,84 @@
+---
+title: 'Add student'
+description: 'Create a new student record.'
+---
+
+`POST /api/student/add`
+
+Creates a new student document and returns it. This endpoint requires no authentication.
+
+## Request body
+
+<ParamField body="name" type="string">
+  The student's full name.
+</ParamField>
+
+<ParamField body="email" type="string">
+  The student's email address.
+</ParamField>
+
+<ParamField body="class" type="string">
+  The class the student belongs to.
+</ParamField>
+
+<ParamField body="section" type="string">
+  The section within the class.
+</ParamField>
+
+<ParamField body="rollNumber" type="number">
+  The student's roll number.
+</ParamField>
+
+## Response
+
+Returns the saved Mongoose `Student` document.
+
+<ResponseField name="_id" type="string" required>
+  MongoDB-generated unique identifier for the student.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The student's full name.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  The student's email address.
+</ResponseField>
+
+<ResponseField name="class" type="string">
+  The class the student belongs to.
+</ResponseField>
+
+<ResponseField name="section" type="string">
+  The section within the class.
+</ResponseField>
+
+<ResponseField name="rollNumber" type="number">
+  The student's roll number.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X POST http://localhost:3000/api/student/add \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Bob Jones",
+    "email": "bob@example.com",
+    "class": "10",
+    "section": "A",
+    "rollNumber": 42
+  }'
+```
+
+```json
+{
+  "_id": "64b2a3c4d5e6f7a8b9c0d1e2",
+  "name": "Bob Jones",
+  "email": "bob@example.com",
+  "class": "10",
+  "section": "A",
+  "rollNumber": 42,
+  "__v": 0
+}
+```

@@ -1,0 +1,79 @@
+---
+title: "Get Student Attendance"
+description: "Retrieve all attendance records for a specific student."
+---
+
+## Endpoint
+
+**GET** `/api/attendance/student/:id`
+
+<Note>
+  This endpoint does not require authentication.
+</Note>
+
+## Path Parameters
+
+<ParamField path="id" type="ObjectId" required>
+  The MongoDB ObjectId of the student whose attendance records are being retrieved.
+</ParamField>
+
+## Response
+
+Returns an array of `Attendance` documents where `studentId` matches the provided `:id`.
+
+<ResponseField name="" type="array">
+  Array of attendance records for the student.
+
+  <Expandable title="Attendance object">
+    <ResponseField name="_id" type="ObjectId">
+      The MongoDB ObjectId of the attendance record.
+    </ResponseField>
+
+    <ResponseField name="studentId" type="ObjectId">
+      The ObjectId of the student this record belongs to.
+    </ResponseField>
+
+    <ResponseField name="date" type="Date">
+      The date of the attendance record.
+    </ResponseField>
+
+    <ResponseField name="status" type="String">
+      The attendance status recorded for that date.
+    </ResponseField>
+
+    <ResponseField name="__v" type="Number">
+      Mongoose internal version key.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example
+
+```bash
+curl https://your-api-host/api/attendance/student/64b1f0e2c2a4a12b3c8d9e01
+```
+
+**Response**
+
+```json
+[
+  {
+    "_id": "64b2f1a3d3b5b23c4d9e0f02",
+    "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+    "date": "2026-03-18T00:00:00.000Z",
+    "status": "present",
+    "__v": 0
+  },
+  {
+    "_id": "64b2f1a3d3b5b23c4d9e0f03",
+    "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+    "date": "2026-03-17T00:00:00.000Z",
+    "status": "absent",
+    "__v": 0
+  }
+]
+```
+
+<Info>
+  Returns an empty array `[]` if no attendance records exist for the given student ID.
+</Info>

@@ -1,0 +1,142 @@
+---
+title: Roles
+description: The seven user roles defined in the SPS School Backend and how role-based access control is enforced.
+---
+
+## Role overview
+
+Every user in the system is assigned exactly one role. The role is stored on the `User` document and is embedded in the JWT on login so that it is available to middleware on every request without an additional database lookup.
+
+| Role | Intended for |
+|---|---|
+| `SUPER_ADMIN` | Full system administrator with unrestricted access across all areas |
+| `ACADEMIC_ADMIN` | Manages academic operations such as classes, teachers, and curriculum |
+| `STUDENT_ADMIN` | Manages student records, enrollment, and student-related data |
+| `FINANCE_ADMIN` | Manages fee collection, payments, and financial reporting |
+| `OPERATIONS_ADMIN` | Handles day-to-day operational tasks such as attendance and facilities |
+| `TEACHER` | Instructional staff — creates assignments and manages submissions |
+| `STUDENT` | Enrolled students — submits assignments and views personal records |
+
+## Role definition in the User model
+
+Roles are enforced at the database level as a Mongoose enum:
+
+```javascript
+// models/User.js
+const userSchema = new mongoose.Schema({
+
+  name: String,
+
+  email: {
+    type: String,
+    unique: true
+  },
+
+  password: String,
+
+  role: {
+    type: String,
+    enum: [
+      "SUPER_ADMIN",
+      "ACADEMIC_ADMIN",
+      "STUDENT_ADMIN",
+      "FINANCE_ADMIN",
+      "OPERATIONS_ADMIN",
+      "TEACHER",
+      "STUDENT"
+    ]
+  }
+
+});
+```
+
+Any value outside this enum will be rejected by Mongoose validation before the document is persisted.
+
+## Role embedding in the JWT
+
+During login, the `role` field is read from the user document and included in the JWT payload:
+
+```javascript
+// controllers/authController.js
+const token = jwt.sign(
+  { id: user._id, role: user.role },
+  process.env.JWT_SECRET
+);
+
+res.json({
+  token,
+  role: user.role
+});
+```
+
+This means every verified request carries the user's role inside `req.user.role` without requiring an additional database query.
+
+## Role enforcement in middleware
+
+`roleMiddleware` performs a strict equality check against the role embedded in the token:
+
+```javascript
+// middleware/roleMiddleware.js
+module.exports = (role) => {
+
+  return (req, res, next) => {
+
+    if (req.user.role !== role) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    next();
+
+  };
+
+};
+```
+
+<Note>
+  Role checking is a single-role exact match. A route protected with `roleMiddleware("TEACHER")` will deny access to a `SUPER_ADMIN` user because the comparison is strict equality — there is no role hierarchy or inheritance built into the middleware.
+</Note>
+
+## Assigning a role during registration
+
+The `role` field is accepted as plain text in the request body during registration:
+
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Bob Jones",
+    "email": "bob@example.com",
+    "password": "securepassword",
+    "role": "TEACHER"
+  }'
+```
+
+<Warning>
+  The registration endpoint does not currently require authentication. Any caller can register a user with any role, including `SUPER_ADMIN`. In a production deployment you should restrict this endpoint or add authorization checks.
+</Warning>
+
+## Role-based request examples
+
+<Tabs>
+  <Tab title="SUPER_ADMIN">
+    ```bash
+    curl -X POST http://localhost:5000/api/auth/register \
+      -H "Content-Type: application/json" \
+      -d '{"name": "Admin", "email": "admin@school.com", "password": "pass", "role": "SUPER_ADMIN"}'
+    ```
+  </Tab>
+  <Tab title="TEACHER">
+    ```bash
+    curl -X POST http://localhost:5000/api/auth/register \
+      -H "Content-Type: application/json" \
+      -d '{"name": "Ms. Chen", "email": "chen@school.com", "password": "pass", "role": "TEACHER"}'
+    ```
+  </Tab>
+  <Tab title="STUDENT">
+    ```bash
+    curl -X POST http://localhost:5000/api/auth/register \
+      -H "Content-Type: application/json" \
+      -d '{"name": "Jay Patel", "email": "jay@school.com", "password": "pass", "role": "STUDENT"}'
+    ```
+  </Tab>
+</Tabs>

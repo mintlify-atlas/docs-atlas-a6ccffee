@@ -1,0 +1,77 @@
+---
+title: "List Fees"
+description: "Retrieve all fee records in the system."
+---
+
+## Endpoint
+
+**GET** `/api/finance/list`
+
+<Note>
+  This endpoint does not require authentication.
+</Note>
+
+## Request Body
+
+This endpoint does not accept a request body.
+
+## Response
+
+Returns an array of all `Fee` documents in the database.
+
+<ResponseField name="" type="array">
+  Array of all fee records.
+
+  <Expandable title="Fee object">
+    <ResponseField name="_id" type="ObjectId">
+      The MongoDB ObjectId of the fee record.
+    </ResponseField>
+
+    <ResponseField name="studentId" type="ObjectId">
+      The ObjectId of the student this fee is assigned to.
+    </ResponseField>
+
+    <ResponseField name="amount" type="Number">
+      The monetary amount of the fee.
+    </ResponseField>
+
+    <ResponseField name="status" type="String">
+      The payment status of the fee.
+    </ResponseField>
+
+    <ResponseField name="__v" type="Number">
+      Mongoose internal version key.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example
+
+```bash
+curl https://your-api-host/api/finance/list
+```
+
+**Response**
+
+```json
+[
+  {
+    "_id": "64b5d4e6a6e8e56f7a2b3c40",
+    "studentId": "64b1f0e2c2a4a12b3c8d9e01",
+    "amount": 500,
+    "status": "unpaid",
+    "__v": 0
+  },
+  {
+    "_id": "64b5d4e6a6e8e56f7a2b3c41",
+    "studentId": "64b1f0e2c2a4a12b3c8d9e02",
+    "amount": 750,
+    "status": "paid",
+    "__v": 0
+  }
+]
+```
+
+<Info>
+  Returns an empty array `[]` if no fee records exist in the system.
+</Info>

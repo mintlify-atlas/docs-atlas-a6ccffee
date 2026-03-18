@@ -1,0 +1,86 @@
+---
+title: 'Register'
+description: 'Create a new user account.'
+---
+
+`POST /api/auth/register`
+
+Creates a new user. The password is hashed with bcrypt before being stored. The full saved user document is returned, including the hashed password field.
+
+<Warning>
+This endpoint performs no duplicate-check before saving. Submitting a duplicate email address will cause MongoDB to throw a unique-constraint error because `email` is marked `unique` in the User schema.
+</Warning>
+
+## Request body
+
+<ParamField body="name" type="string" required>
+  The user's full name.
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  The user's email address. Must be unique across all users.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's plain-text password. Stored as a bcrypt hash.
+</ParamField>
+
+<ParamField body="role" type="string" required>
+  The user's role. Must be one of the following values:
+
+  - `SUPER_ADMIN`
+  - `ACADEMIC_ADMIN`
+  - `STUDENT_ADMIN`
+  - `FINANCE_ADMIN`
+  - `OPERATIONS_ADMIN`
+  - `TEACHER`
+  - `STUDENT`
+</ParamField>
+
+## Response
+
+Returns the saved Mongoose `User` document.
+
+<ResponseField name="_id" type="string" required>
+  MongoDB-generated unique identifier for the user.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The user's full name.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  The user's email address.
+</ResponseField>
+
+<ResponseField name="role" type="string">
+  The user's assigned role.
+</ResponseField>
+
+<ResponseField name="password" type="string">
+  The bcrypt-hashed password. This field is included in the response because `res.json(user)` returns the full Mongoose document.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Alice Smith",
+    "email": "alice@example.com",
+    "password": "s3cr3t",
+    "role": "TEACHER"
+  }'
+```
+
+```json
+{
+  "_id": "64a1f2b3c4d5e6f7a8b9c0d1",
+  "name": "Alice Smith",
+  "email": "alice@example.com",
+  "password": "$2a$10$hashedvalue...",
+  "role": "TEACHER",
+  "__v": 0
+}
+```
